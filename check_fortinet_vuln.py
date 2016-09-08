@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 import sys, getopt, os.path, os, urllib3
 import requests 
@@ -27,14 +26,19 @@ def verifyConfig():
 
 def verifyVuln(n):
     try:
-        r=requests.get('https://'+n, verify=False, timeout=10)
+	r=requests.get("https://"+n, verify=False, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "en-US", "Accept-Encoding": "gzip, deflate, br", "Connection": "close"})
+        #r=requests.get('https://'+n, verify=False, timeout=10)
     except requests.exceptions.RequestException as e:   
-        print e
+	print e
         sys.exit(1)
-    
-    #debug print r.headers['ETag']
-    etag = r.headers['ETag'].replace('"',"").split('_',2)[-1]
-    
+    try:
+	#debug print r.headers['ETag']
+   	etag = r.headers['ETag'].replace('"',"").split('_',2)[-1]
+    except KeyError:
+        print '----> NOT VULNERABLE'
+	print 'ETag header missing. Probably not running on Fortigate models 60, 60M, 80C, 200A, 300A, 400A, 500A, 620B, 800, 5000, 1000A, 3600 or 3600A.'
+	sys.exit()
+
     if etag in open('EGBL.config').read():
         print ''
         print '----> VULNERABLE ! '
